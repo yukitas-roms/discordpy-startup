@@ -1,11 +1,10 @@
+import discord
 from discord.ext import commands
 import os
 import traceback
-import discode
 
 bot = commands.Bot(command_prefix='/')
 token = os.environ['DISCORD_BOT_TOKEN']
-
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -21,18 +20,23 @@ async def ping(ctx):
     
 @bot.command()
 async def schedule_hero(ctx, date=""):
+    # 残り人数カウンター
     cnt = 12
-    tank_name = ""
-    saint_name = ""
-    msg_frame = discord.Embed(title=f"タナトスヒーロー募集 {date}", colour=0x1e90ff)
-    msg_frame.add_field(name=f"あと{cnt}人 募集中\n", value=None, inline=True)
-    msg_frame.add_field(name=f"🟥タンク：{tank_name} \n", value=None, inline=True)
-    msg_frame.add_field(name=f"🟩支援セイント：{saint_name}\n", value=None, inline=True)
-    msg_frame.add_field(name=f"🟦アーケインマスター：\n", value=None, inline=True)
-    msg_frame.add_field(name=f"🔴ルーンマスター : \n", value=None, inline=True)
+
+    # カテゴリ関係
+    # 本当はclassにまとめた方がきっときれい
+    # 面倒なので順序を保ったリストをzipでまとめる
+    keys = ["tank", "saint", "dark", "am", "rm", "lb", "dram", "sora","luna", "other", "free", "absent"]
+    marks = ['🛡️', '💚', '💜', '✨', '⚔', '🤖', '🐱', '☀', '🌙', '🔥', '🆓', '💤']
+    labels = ["タンク", "支援セイント", "闇変セイント", "アーケインマスター", "ルーンマスター", "ライトブリンガー", "ドラム", "ソラリス",
+              "ルナリス", "その他火力", "フリー参加", "欠席"]
+
+    # 最初の描画
+    msg_frame = discord.Embed(title=f"タナトスヒーロー募集 {date} ＠ {cnt} 人", colour=0x1e90ff)
+    for key, mark, label in zip(keys, marks, labels):
+        msg_frame.add_field(name=mark+label, value="\u200b", inline=True)
     msg = await ctx.send(embed=msg_frame)
-    await msg.add_reaction('🟥')
-    await msg.add_reaction('🟩')
-    await msg.add_reaction('🟦')
-    await msg.add_reaction('🔴')
+    for mark in marks:
+        await msg.add_reaction(mark)
+
 bot.run(token)
