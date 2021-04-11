@@ -16,8 +16,6 @@ class thanatos_Cog(commands.Cog):
         self._last_member = None
         self.embed = discord.Embed(title="", color=0x1e90ff)
         self.msg = None
-        # 残り人数カウンター
-        self.cnt = 12
         self.date = ""
         # カテゴリ関係
         # 本当はclassにまとめた方がきっときれいだが、面倒なので順序を保ったリストをzipでまとめる
@@ -30,25 +28,41 @@ class thanatos_Cog(commands.Cog):
     async def ping(self, ctx):
         await ctx.send('pong')
 
+    @commands.command()
+    async def _update_reactions(self):
+        self.msg = await self.msg.channel.fetch_message(self.msg.id)
+        # 何のリアクションが来たかに関わらず、addが発生したら全リアクションを更新する
+        # 若干動作が遅いので、もしかしたら更新があったリアクションに絞った方がよいのかも
+
+        # msgに紐づく全リアクションを取ってくる
+        for r in self.msg.reactions:
+            id = self.marks.index(r.emoji)
+            label = "\u200b"
+            # 該当リアクションに紐づくユーザのリスト
+            users = await r.users().flatten()
+            for u in users:
+                # botでないユーザの名前を改行挟んで文字列連結
+                # 本当は上のリストをうまく絞り込んでjoinするのがpythonっぽいはずだがスキル不足である
+                if not u.bot:
+                    label += u.name + '\n'
+            self.embed.set_field_at(id, name=self.marks[id] + self.labels[id], value=label, inline=True)
+        await self.msg.edit(embed=self.embed)
+
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         if not user.bot:
-            self.cnt -= 1
-            id = self.marks.index(reaction.emoji)
-            self.embed.set_field_at(id, name=self.marks[id]+self.labels[id], value=user, inline=True)
-            print(self.embed.fields[id])
-            await self.msg.edit(embed=self.embed)
+            await self._update_reactions()
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
         if not user.bot:
-            print(reaction, user)
+            await self._update_reactions()
 
     @commands.command()
     async def schedule_hero(self, ctx, date=""):
         # 最初の描画
         self.date = date
-        self.embed.title = f"タナトスヒーロー募集 {self.date} ＠ {self.cnt} 人"
+        self.embed.title = f"タナトスヒーロー募集 ： {self.date} "
         for key, mark, label in zip(self.keys, self.marks, self.labels):
             self.embed.add_field(name=mark+label, value="\u200b", inline=True)
         self.msg = await ctx.send(embed=self.embed)
