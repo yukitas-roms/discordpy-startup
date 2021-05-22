@@ -26,6 +26,11 @@ class thanatos_Cog(commands.Cog):
         self.pt_keys = ["salt", "non-salt"]
         self.pt_marks = ['🈶', '🈚']
         self.pt_labels = ["塩PT", "無塩PT"]
+        
+        # organize_future用
+        self.PT_future_keys = ["maintank", "subtank", "saint", "dark", "am", "rm", "lb", "dram", "lunasora", "other"]
+        self.PT_future_marks = ['🛡️', '🛡️', '💚', '💜', '✨', '⚔', '🤖', '🐱', '☀', '🔥']
+        self.PT_future_labels = ["メインタンク", "サブタンク", "支援セイント", "闇変セイント", "アーケインマスター", "ルーンマスター", "ライトブリンガー", "ドラム", "ルナソラ"]
 
     @commands.command()
     async def ping(self, ctx):
@@ -86,6 +91,16 @@ class thanatos_Cog(commands.Cog):
             embed.add_field(name=mark+label, value="\u200b", inline=True)
         msg = await ctx.send(embed=embed)
         for mark in self.pt_marks:
+            await msg.add_reaction(mark)
+
+    @commands.command()
+    async def organize_future_hero(self, ctx, datetime, string):
+        embed = discord.Embed()
+        embed.title = f"タナトスヒーロー パーティ編成： {datetime} {string}"
+        for key, mark, label in zip(self.pt_future_keys, self.pt_future_marks, self.pt_future_labels):
+            embed.add_field(name=mark+label, value="\u200b", inline=True)
+        msg = await ctx.send(embed=embed)
+        for mark in self.pt_future_marks:
             await msg.add_reaction(mark)
 
 if __name__ == '__main__':
